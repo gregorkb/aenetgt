@@ -386,8 +386,8 @@ pull.diagnoses <- function(Z,Y)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' b <- data$b
-#' EY <- EY.exact(Z,Y,X,b,Se,Sp)
-EY.exact<-function(Z,Y,X,b,Se,Sp){
+#' EY <- EYexact(Z,Y,X,b,Se,Sp)
+EYexact_R<-function(Z,Y,X,b,Se,Sp){
 
 n<-dim(Y)[1]
 p<-logit(b,X)
@@ -395,7 +395,7 @@ EY<-rep(-99,n)
 id.go<-(1:n)[Y[,2]==1] # individuals tested in a group only
 id.rt<-(1:n)[Y[,2]>1]  # individuals who are retested after being tested in a pool
 
-##################################################################
+
 # Handles MPT only or negative master pools under Dorfman testing
 while(length(id.go)>0){
 pid<-Y[id.go[1],3]  			# assay index for group in which individual was tested
@@ -416,7 +416,7 @@ EY[grp]<-Zj*A/PZ1 + (1-Zj)*B/PZ0
 id.go<-id.go[(id.go %in% grp)==FALSE] 
 }
 
-###########################################################
+
 # Handles positive master pools under Dorfman testing 
 
 while(length(id.rt)>0){
@@ -484,8 +484,8 @@ return(EY)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' b <- data$b
-#' EY <- EY.approx(Z,Y,X,b,Se,Sp,GI=5000)
-EY.approx<-function(Z,Y,X,b,Se,Sp,GI=5000){
+#' EY <- EYapprox(Z,Y,X,b,Se,Sp,GI=5000)
+EYapprox<-function(Z,Y,X,b,Se,Sp,GI=5000){
 n<-dim(Y)[1]
 na<-length(Se)
 # The E-Step
@@ -528,7 +528,7 @@ return(EY)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' b.mle <- mlegt(X, Y, Z, Se, Sp, delta = .01)$b.mle # compute mle
-#' EY <- EY.exact(Z,Y,X,b.mle,Se,Sp)
+#' EY <- EYexact(Z,Y,X,b.mle,Se,Sp)
 #' px <- as.numeric(logit(b.mle,X))
 #' CovYiYj <- CovYiYj.approx(Z,Y,X,b.mle,Se,Sp,EY)
 #' # use Louis' method to get the observed information matrix
@@ -593,7 +593,7 @@ CovYiYj.approx <- function (Z, Y, X, b, Se, Sp, EY, GI = 50000)
 #'      test specificity for individual testing, if applicable.
 #' @param binit Parameter value at which to initialize the EM-algorithm. The default is \code{b=1}, for which an initial value is chosen internally.
 #' @param delta Convergence criterion.
-#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.
+#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the maximum likelihood estimators are returned.
 #' @return The maximum likelihood estimator.
 #' 
@@ -628,7 +628,7 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 		b1 <- binit
 	}
 	
-	get.EY <- eval(parse(text = ifelse(E.approx, "EY.approx","EY.exact")))
+	get.EY <- eval(parse(text = ifelse(E.approx, "EYapprox","EYexact")))
 
 	max.diff <- 1
 	iter <- 1
@@ -691,7 +691,7 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
 #' @param binit Initial values for EM-algorithm.
 #' @param delta Convergence criterion.
-#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.
+#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the estimates are returned.
 #' @return The elastic net estimator with weighted l1 norm under the choices of \code{lambda}, \code{theta}, and \code{weights}.
 #' 
@@ -735,7 +735,7 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 			weights <- rep(1,p)	
 	} 
 	
-	get.EY <- eval(parse(text = ifelse(E.approx, "EY.approx","EY.exact")))
+	get.EY <- eval(parse(text = ifelse(E.approx, "EYapprox","EYexact")))
 	
 	max.diff <- 1
 	iter <- 1
@@ -806,7 +806,7 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 #' @param n.theta Number of theta values for which to compute the estimator.
 #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
 #' @param delta Convergence criterion.
-#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.
+#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param verbose Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.
 #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the estimates are returned.
 #' @param ridge.include Logical.  If \code{TRUE} then the sequence of theta values begins with 0 to include the ridge estimator.
@@ -849,7 +849,7 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
                       	
     n <- nrow(X.keep)
     p.keep <- ncol(X.keep) - 1
-   	get.EY <- eval(parse(text = ifelse(E.approx, "EY.approx", "EY.exact")))
+   	get.EY <- eval(parse(text = ifelse(E.approx, "EYapprox", "EYexact")))
 
     b.keep <- c(-2, rep(0.01, p.keep))
     max.diff <- 1
@@ -953,7 +953,7 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
 # #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
 # #' @param B.INIT Initial values for EM-algorithm.
 # #' @param delta Convergence criterion.
-# #' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.
+# #' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 # #' @param verbose Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.
 # #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the estimates are returned.
 # #' @return A list of output which includes an array \code{B.ENET} of solutions over the grid of lambda and theta values.
@@ -989,7 +989,7 @@ enetgt.grid.0 <- function( X, Y, Z, Se, Sp, lambda.seq, theta.seq, weights = 1, 
 		n <- nrow(X.keep)
 		p.keep <- ncol(X.keep) - 1
 		
-		get.EY <- eval(parse(text = ifelse(E.approx, "EY.approx","EY.exact")))
+		get.EY <- eval(parse(text = ifelse(E.approx, "EYapprox","EYexact")))
 		
 		n.lambda <- length(lambda.seq)
 		n.theta <- length(theta.seq)
@@ -1046,11 +1046,11 @@ enetgt.grid.0 <- function( X, Y, Z, Se, Sp, lambda.seq, theta.seq, weights = 1, 
 }
 
 
-####################################################################################################################################
-####################################################################################################################################
+
+
 ####### CROSSVALIDATION FUNCTIONS
-####################################################################################################################################
-####################################################################################################################################
+
+
 
 #' Splits individual testing data into crossvalidation data sets.
 #'
@@ -1134,7 +1134,8 @@ get.individual.cv.fold.data <- function(X,Y,Z,K)
 																				Z.train = Z.train.fold,
 																				X.test = X.test.fold,
 																				Y.test = Y.test.fold,
-																				Z.test = Z.test.fold,																													num.pools.removed = length(pools.fold),
+																				Z.test = Z.test.fold,																													
+																				num.pools.removed = length(pools.fold),
 																				num.pools = num.pools
 																				)
 	
@@ -1514,7 +1515,7 @@ get.dorfman.individual.cv.fold.data <- function(X.dorf,Y.dorf,Z.dorf,X.ind,Y.ind
 #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
 #' @param B.INIT Array of values to be used to initialize the EM-algorithm at each of the tuning paramter combinations specified in \code{lambda.seq} and \code{theta.seq}.
 #' @param delta Convergence criterion.
-#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.
+#' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param verbose Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.
 #' @param plot Logical. If \code{TRUE} then a plot is produced showing the mean of the crossvalidation estimates of the deviance over the null deviance.
 #' @return A list which includes the chosen values of the tuning parameters according to crossvalidation.
@@ -1891,7 +1892,7 @@ neg.ll.masterpool <- function(b,Z,X,Se,Sp)  # this is the exact log-likelihood f
 	
 }	
 
-#####################################################################
+
 # R function: A helper function for neg.ll.dorfman().  Computes the 
 #             joint probability 
 #

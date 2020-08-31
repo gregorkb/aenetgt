@@ -2,22 +2,51 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 EYgibbs <- function(N, p, Y, Z, se, sp, na, GI) {
-    .Call('aenetgt_EYgibbs', PACKAGE = 'aenetgt', N, p, Y, Z, se, sp, na, GI)
+    .Call('_aenetgt_EYgibbs', PACKAGE = 'aenetgt', N, p, Y, Z, se, sp, na, GI)
 }
 
 EYiYjgibbs_slow <- function(N, p, Y, Z, se, sp, na, GI) {
-    .Call('aenetgt_EYiYjgibbs_slow', PACKAGE = 'aenetgt', N, p, Y, Z, se, sp, na, GI)
+    .Call('_aenetgt_EYiYjgibbs_slow', PACKAGE = 'aenetgt', N, p, Y, Z, se, sp, na, GI)
 }
 
 CovYiYjgibbs <- function(N, p, Y, Z, W, se, sp, EY, na, GI) {
-    .Call('aenetgt_CovYiYjgibbs', PACKAGE = 'aenetgt', N, p, Y, Z, W, se, sp, EY, na, GI)
+    .Call('_aenetgt_CovYiYjgibbs', PACKAGE = 'aenetgt', N, p, Y, Z, W, se, sp, EY, na, GI)
 }
 
 logistic_enet <- function(Yr, Xr, lambda, gammar, theta, binitr, delta) {
-    .Call('aenetgt_logistic_enet', PACKAGE = 'aenetgt', Yr, Xr, lambda, gammar, theta, binitr, delta)
+    .Call('_aenetgt_logistic_enet', PACKAGE = 'aenetgt', Yr, Xr, lambda, gammar, theta, binitr, delta)
 }
 
 llj_array <- function(Zjr, Zjc, Yji, whichjretest, pxji, Se, Sp, B) {
-    .Call('aenetgt_llj_array', PACKAGE = 'aenetgt', Zjr, Zjc, Yji, whichjretest, pxji, Se, Sp, B)
+    .Call('_aenetgt_llj_array', PACKAGE = 'aenetgt', Zjr, Zjc, Yji, whichjretest, pxji, Se, Sp, B)
+}
+
+all_binary_sequences <- function(a) {
+    .Call('_aenetgt_all_binary_sequences', PACKAGE = 'aenetgt', a)
+}
+
+#' Computes conditional expectations of individual disease statuses for individual, master pool, or Dorfman testing
+#'   
+#' @param Z Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}.
+#' @param Y Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}.
+#' @param X Design matrix with first column a column of 1s.
+#' @param b Parameter values at which to compute the conditional expectations.
+#' @param Se A vector of testing sensitivities of length \code{max(Z[,3])}.
+#' @param Sp A vector of testing specificities of length \code{max(Z[,3])}.
+#' @return The vector of conditional expectations.
+#' 
+#' This function computes the conditional expectations of each individual disease status, conditional on the observed assay data and the diseasestatuses of all other individuals.
+#' 
+#' @examples
+#' grouplassogt2pop_data <- get_grouplassogt2pop_data( n1 = 400, n2 = 600)
+#'   
+#' EY <- EYexact(Z = grouplassogt2pop_data$Z1,
+#'               Y = grouplassogt2pop_data$Y1,
+#'               X = grouplassogt2pop_data$X1,
+#'               b = rep(1,ncol(grouplassogt2pop_data$X1)),
+#'               Se = grouplassogt2pop_data$Se1,
+#'               Sp = grouplassogt2pop_data$Sp1)
+EYexact <- function(Z, Y, X, b, Se, Sp) {
+    .Call('_aenetgt_EYexact', PACKAGE = 'aenetgt', Z, Y, X, b, Se, Sp)
 }
 

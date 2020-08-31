@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // EYgibbs
 Rcpp::NumericVector EYgibbs(int N, NumericVector p, NumericMatrix Y, NumericMatrix Z, NumericVector se, NumericVector sp, int na, int GI);
-RcppExport SEXP aenetgt_EYgibbs(SEXP NSEXP, SEXP pSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP seSEXP, SEXP spSEXP, SEXP naSEXP, SEXP GISEXP) {
+RcppExport SEXP _aenetgt_EYgibbs(SEXP NSEXP, SEXP pSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP seSEXP, SEXP spSEXP, SEXP naSEXP, SEXP GISEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,7 +26,7 @@ END_RCPP
 }
 // EYiYjgibbs_slow
 Rcpp::NumericMatrix EYiYjgibbs_slow(int N, NumericVector p, NumericMatrix Y, NumericMatrix Z, NumericVector se, NumericVector sp, int na, int GI);
-RcppExport SEXP aenetgt_EYiYjgibbs_slow(SEXP NSEXP, SEXP pSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP seSEXP, SEXP spSEXP, SEXP naSEXP, SEXP GISEXP) {
+RcppExport SEXP _aenetgt_EYiYjgibbs_slow(SEXP NSEXP, SEXP pSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP seSEXP, SEXP spSEXP, SEXP naSEXP, SEXP GISEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -44,7 +44,7 @@ END_RCPP
 }
 // CovYiYjgibbs
 Rcpp::NumericMatrix CovYiYjgibbs(int N, NumericVector p, NumericMatrix Y, NumericMatrix Z, NumericMatrix W, NumericVector se, NumericVector sp, NumericVector EY, int na, int GI);
-RcppExport SEXP aenetgt_CovYiYjgibbs(SEXP NSEXP, SEXP pSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP seSEXP, SEXP spSEXP, SEXP EYSEXP, SEXP naSEXP, SEXP GISEXP) {
+RcppExport SEXP _aenetgt_CovYiYjgibbs(SEXP NSEXP, SEXP pSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP WSEXP, SEXP seSEXP, SEXP spSEXP, SEXP EYSEXP, SEXP naSEXP, SEXP GISEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -64,7 +64,7 @@ END_RCPP
 }
 // logistic_enet
 Rcpp::List logistic_enet(Rcpp::NumericVector Yr, Rcpp::NumericMatrix Xr, float lambda, Rcpp::NumericVector gammar, float theta, Rcpp::NumericVector binitr, float delta);
-RcppExport SEXP aenetgt_logistic_enet(SEXP YrSEXP, SEXP XrSEXP, SEXP lambdaSEXP, SEXP gammarSEXP, SEXP thetaSEXP, SEXP binitrSEXP, SEXP deltaSEXP) {
+RcppExport SEXP _aenetgt_logistic_enet(SEXP YrSEXP, SEXP XrSEXP, SEXP lambdaSEXP, SEXP gammarSEXP, SEXP thetaSEXP, SEXP binitrSEXP, SEXP deltaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -81,7 +81,7 @@ END_RCPP
 }
 // llj_array
 Rcpp::List llj_array(Rcpp::IntegerVector Zjr, Rcpp::IntegerVector Zjc, Rcpp::IntegerVector Yji, Rcpp::IntegerVector whichjretest, Rcpp::NumericVector pxji, Rcpp::NumericVector Se, Rcpp::NumericVector Sp, int B);
-RcppExport SEXP aenetgt_llj_array(SEXP ZjrSEXP, SEXP ZjcSEXP, SEXP YjiSEXP, SEXP whichjretestSEXP, SEXP pxjiSEXP, SEXP SeSEXP, SEXP SpSEXP, SEXP BSEXP) {
+RcppExport SEXP _aenetgt_llj_array(SEXP ZjrSEXP, SEXP ZjcSEXP, SEXP YjiSEXP, SEXP whichjretestSEXP, SEXP pxjiSEXP, SEXP SeSEXP, SEXP SpSEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -94,6 +94,33 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type Sp(SpSEXP);
     Rcpp::traits::input_parameter< int >::type B(BSEXP);
     rcpp_result_gen = Rcpp::wrap(llj_array(Zjr, Zjc, Yji, whichjretest, pxji, Se, Sp, B));
+    return rcpp_result_gen;
+END_RCPP
+}
+// all_binary_sequences
+arma::mat all_binary_sequences(int a);
+RcppExport SEXP _aenetgt_all_binary_sequences(SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(all_binary_sequences(a));
+    return rcpp_result_gen;
+END_RCPP
+}
+// EYexact
+arma::colvec EYexact(IntegerMatrix Z, IntegerMatrix Y, NumericMatrix X, NumericVector b, NumericVector Se, NumericVector Sp);
+RcppExport SEXP _aenetgt_EYexact(SEXP ZSEXP, SEXP YSEXP, SEXP XSEXP, SEXP bSEXP, SEXP SeSEXP, SEXP SpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type Se(SeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type Sp(SpSEXP);
+    rcpp_result_gen = Rcpp::wrap(EYexact(Z, Y, X, b, Se, Sp));
     return rcpp_result_gen;
 END_RCPP
 }
