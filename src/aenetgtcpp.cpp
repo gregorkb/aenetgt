@@ -162,120 +162,105 @@ Rcpp::NumericMatrix CovYiYjgibbs(int N, NumericVector p, NumericMatrix Y, Numeri
 
 // [[Rcpp::export()]]
 Rcpp::List logistic_enet(Rcpp::NumericVector Yr, 
-			Rcpp::NumericMatrix Xr,
-			float lambda,
-			Rcpp::NumericVector gammar,
-			float theta,
-			Rcpp::NumericVector binitr,
-			float delta){
-				
-int n = Xr.nrow(), p = Xr.ncol()-1, i, k;
-float uj, vj, wj, sj;
-	
-arma::mat X(Xr.begin(), n, p+1, false); 
-arma::colvec Y(Yr.begin(),Yr.size(), false);
-arma::colvec gamma(gammar.begin(),gammar.size(),false);
-arma::colvec binit(binitr.begin(),binitr.size(),false);
-	
-arma::colvec b1 = binit;
-arma::colvec b0 = binit;
-arma::colvec diff = arma::ones(p+1);
-	
-arma::colvec b11 = binit;
-arma::colvec b00 = binit;
-arma::colvec diff2 = arma::ones(p+1);
-	
-arma::colvec px(n);
-arma::colvec w(n);
-arma::colvec r(n);
-	
-arma::colvec rj(n);
-arma::mat Xj = X;
-arma::colvec b11j(n);
-
-i = 0;
-
-while( (i < 500) & (diff.max() > delta))
-{
-	b0 = b1;
-	
-	px = exp(X * b0) / (1 + exp(X * b0));
-	w = px % (1 - px);
-	r = X * b0 + ( Y - px) / w;
-
-	k = 0;
-	diff2 = arma::ones(p+1);
-	
-	while( (k < 500) & (diff2.max() > delta))
-	{
-		
-		b00 = b11; 
-		
-		b11(0) = sum( w % ( r - X.cols(1,p) * b00.rows(1,p))) / sum(w);
-		
-		
-		for(int j=1; j < (p+1) ; j++)
-		{
-			Xj = X;
-			Xj.shed_col(j);
-		
-			b11j = b11;
-			b11j.shed_row(j);
-			
-			rj = Xj * b11j;
-															
-			uj = sum( w % ( r - rj) % X.col(j) );
-
-			vj = theta * lambda * arma::as_scalar(gamma(j-1));//why do I have j-1 here ?
-			
-			wj = sum( w % pow(X.col(j),2)) + lambda * (1 - theta); 
-			
-			if( (uj > 0) & (vj < std::abs(uj)) ) // soft-thresholding
-			{
-				sj = uj - vj;
-				
-			} else if( (uj < 0) & (vj < std::abs(uj)))
-			{
-				
-				sj = uj + vj;
-				
-			} else {
-				
-				sj = 0;
-				
-			}
-			
-			
-			b11(j) = sj / wj;
-			
+                         Rcpp::NumericMatrix Xr,
+                         float lambda,
+                         Rcpp::NumericVector gammar,
+                         float theta,
+                         Rcpp::NumericVector binitr,
+                         float delta){
+                           
+		  
+		  int n = Xr.nrow(), p = Xr.ncol()-1, i, k;
+		  float uj, vj, wj, sj;
+		  bool conv00, conv0;
+		  
+		  arma::mat X(Xr.begin(), n, p+1, false); 
+		  arma::colvec Y(Yr.begin(),Yr.size(), false);
+		  arma::colvec gamma(gammar.begin(),gammar.size(),false);
+		  arma::colvec binit(binitr.begin(),binitr.size(),false);
+		  
+		  arma::colvec b = binit;
+		  arma::colvec b0 = binit;
+		  arma::colvec b00 = binit;
+		  arma::colvec diff = arma::ones(p+1);
+		  
+		  arma::colvec eta = arma::zeros(n);
+		  arma::colvec pr(n);
+		  arma::colvec w(n);
+		  arma::colvec z(n);
+		  arma::colvec zj(n);
+		  
+		  i = 0;
+		  conv00 = false;
+		  while( (i < 500) & (conv00 == false)){
+		    
+		    b00 = b;
+		    
+		    pr = 1 / (1 + exp(-eta));
+		    w = pr % (1 - pr);
+		    z = eta + (Y - pr) / w;
+		    
+		    k = 0;
+		    conv0 = false;
+		    while( (k < 500) & (conv0 == false)){
+		      
+		      b0 = b; 
+		      
+		      b(0) = sum( w % ( z - (eta - X.col(0) * b(0) ))) / sum(w);
+		      
+		      eta = eta + X.col(0) * ( b(0) - b0(0) );
+		      
+		      for(int j=1; j < (p+1) ; j++){
+		        
+		        zj = z - (eta - X.col(j) * b(j));
+		        uj = sum( w % zj % X.col(j) );
+		        vj = theta * lambda * arma::as_scalar(gamma(j-1));
+		        wj = sum( w % pow(X.col(j),2)) + lambda * (1 - theta); 
+		        
+		        // soft-threshold
+		        if( (uj > 0) & (vj < std::abs(uj)) ){ 
+		          
+		          sj = uj - vj;
+		          
+		        } else if( (uj < 0) & (vj < std::abs(uj))){
+		          
+		          sj = uj + vj;
+		          
+		        } else {
+		          
+		          sj = 0;
+		          
+		        }
+		        
+		        b(j) = sj / wj;
+		        eta = eta + X.col(j) * ( b(j) - b0(j) );
+		        
+		      }
+		      
+		      diff = abs(b - b0);
+		      conv0 = diff.max() < delta;
+		      k++;
+		      
+		    }
+		    
+		    diff = abs(b - b00);
+		    conv00 = diff.max() < delta;
+		    i++;
+		  
+		  }
+		  
+		  if(b.has_nan()) {
+		    
+		    Rcpp::Rcout << "warning: failure to converge due to complete or quasi-complete separation" << std::endl;
+		    
+		  }
+		  
+		  return Rcpp::List::create(Named("b") = b,
+                              Named("lambda") = lambda,
+                              Named("theta") = theta,
+                              Named("gamma") = gamma);
 		}
-		
-		
-		diff2 = abs(b11 - b00);
-		k++;
-		
-	}
-	
-	b1 = b11;
 
-
-	diff = abs(b1 - b0);
-	i++;
-}
-
-if(b1.has_nan()) 
-{				
-	Rcpp::Rcout << "warning: failure to converge due to complete or quasi-complete separation" << std::endl;
-	
-}
-
-return Rcpp::List::create(Named("b") = b1,
-					Named("lambda") = lambda,
-					Named("theta") = theta,
-					Named("gamma") = gamma
-					);
-}
-		
 // [[Rcpp::export()]]
 Rcpp::List llj_array(	Rcpp::IntegerVector Zjr, 
 			Rcpp::IntegerVector Zjc,

@@ -13,6 +13,10 @@ CovYiYjgibbs <- function(N, p, Y, Z, W, se, sp, EY, na, GI) {
     .Call(`_aenetgt_CovYiYjgibbs`, N, p, Y, Z, W, se, sp, EY, na, GI)
 }
 
+logistic_enet_slow <- function(Yr, Xr, lambda, gammar, theta, binitr, delta) {
+    .Call(`_aenetgt_logistic_enet_slow`, Yr, Xr, lambda, gammar, theta, binitr, delta)
+}
+
 logistic_enet <- function(Yr, Xr, lambda, gammar, theta, binitr, delta) {
     .Call(`_aenetgt_logistic_enet`, Yr, Xr, lambda, gammar, theta, binitr, delta)
 }
@@ -38,7 +42,7 @@ all_binary_sequences <- function(a) {
 #' @param Sp A vector of testing specificities of length \code{max(Z[,3])}.
 #' @return The vector of conditional expectations.
 #' 
-#' This function computes the conditional expectations of each individual disease status, conditional on the observed assay data and the diseasestatuses of all other individuals.
+#' This function computes the conditional expectations of each individual disease status given the observed assay data.
 #' 
 #' @examples
 #' # generate individual covariate values and disease statuses

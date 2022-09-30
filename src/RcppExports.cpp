@@ -67,6 +67,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// logistic_enet_slow
+Rcpp::List logistic_enet_slow(Rcpp::NumericVector Yr, Rcpp::NumericMatrix Xr, float lambda, Rcpp::NumericVector gammar, float theta, Rcpp::NumericVector binitr, float delta);
+RcppExport SEXP _aenetgt_logistic_enet_slow(SEXP YrSEXP, SEXP XrSEXP, SEXP lambdaSEXP, SEXP gammarSEXP, SEXP thetaSEXP, SEXP binitrSEXP, SEXP deltaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type Yr(YrSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Xr(XrSEXP);
+    Rcpp::traits::input_parameter< float >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type gammar(gammarSEXP);
+    Rcpp::traits::input_parameter< float >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type binitr(binitrSEXP);
+    Rcpp::traits::input_parameter< float >::type delta(deltaSEXP);
+    rcpp_result_gen = Rcpp::wrap(logistic_enet_slow(Yr, Xr, lambda, gammar, theta, binitr, delta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // logistic_enet
 Rcpp::List logistic_enet(Rcpp::NumericVector Yr, Rcpp::NumericMatrix Xr, float lambda, Rcpp::NumericVector gammar, float theta, Rcpp::NumericVector binitr, float delta);
 RcppExport SEXP _aenetgt_logistic_enet(SEXP YrSEXP, SEXP XrSEXP, SEXP lambdaSEXP, SEXP gammarSEXP, SEXP thetaSEXP, SEXP binitrSEXP, SEXP deltaSEXP) {
@@ -134,6 +151,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_aenetgt_EYgibbs", (DL_FUNC) &_aenetgt_EYgibbs, 8},
     {"_aenetgt_EYiYjgibbs_slow", (DL_FUNC) &_aenetgt_EYiYjgibbs_slow, 8},
     {"_aenetgt_CovYiYjgibbs", (DL_FUNC) &_aenetgt_CovYiYjgibbs, 10},
+    {"_aenetgt_logistic_enet_slow", (DL_FUNC) &_aenetgt_logistic_enet_slow, 7},
     {"_aenetgt_logistic_enet", (DL_FUNC) &_aenetgt_logistic_enet, 7},
     {"_aenetgt_llj_array", (DL_FUNC) &_aenetgt_llj_array, 8},
     {"_aenetgt_all_binary_sequences", (DL_FUNC) &_aenetgt_all_binary_sequences, 1},

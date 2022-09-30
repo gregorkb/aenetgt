@@ -632,20 +632,21 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 
 	max.diff <- 1
 	iter <- 1
-	while(  max.diff > delta )
-	{
+	while(  max.diff > delta ){
+	  
 		b0 <- b1
 		EY <- get.EY(Z,Y,X,b0,Se,Sp)
-		b1 <- logistic_enet( EY, X, 0, rep(1,ncol(X)), 0 , b0, delta )$b
+		b1 <- logistic_enet(EY, X, 0, rep(1,ncol(X)), 0, b0, delta)$b
 		max.diff <- max(abs(b1 - b0))
 		iter <- iter + 1
 		if(is.na(max.diff)) break;
+		
 	}
 	
 	b.mle <- as.numeric(b1)
 		
-	if(get.SEs & is.na(b.mle[1])==FALSE)
-	{
+	if(get.SEs & is.na(b.mle[1])==FALSE){
+	  
 		# Get observed information matrix by Louis' Method:
 		px <- as.numeric(logit(b.mle,X))
 		CovYiYj <- CovYiYj.approx(Z,Y,X,b.mle,Se,Sp,EY)
@@ -658,18 +659,18 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 	} else {
 		
 		b.mle.se <- rep( NA , p + 1 )
+		
 	}
 	
 	conv <- ifelse(is.na(max.diff),FALSE,TRUE)
 
 	output <- list(	b.mle = b.mle,
-					b.mle.se = b.mle.se,
-					delta = delta,
-					Se = Se,
-					Sp = Sp,
-					conv = conv,
-					iter = iter
-					)
+	                b.mle.se = b.mle.se,
+	                delta = delta,
+	                Se = Se,
+	                Sp = Sp,
+	                conv = conv,
+	                iter = iter)
 					
 	return(output)
 
@@ -715,45 +716,45 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 #' # compute adaptive elastic net with weights from the elastic net estimator
 #' a.enetgt.out <- enetgt(X, Y, Z, Se, Sp, lambda=.5, theta=.5, 
 #'                        weights = 1/abs(enetgt.out$b.enet[-1])) 
-enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delta = 1e-3, E.approx = FALSE, get.SEs = FALSE)
-{
+enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delta = 1e-3, E.approx = FALSE, get.SEs = FALSE){
 	
 	p <- ncol(X) - 1 # The first column of X is ones
 	
-	if(length(binit) == 1)
-	{ 
+	if(length(binit) == 1){ 
 		
 		b1 <- c(-2,rep(0,p))
 
 	} else {
 
 		b1 <- binit
+		
 	}
 	
-	if(length(weights)==1)
-	{
+	if(length(weights)==1){
+	  
 			weights <- rep(1,p)	
+			
 	} 
 	
 	get.EY <- eval(parse(text = ifelse(E.approx, "EYapprox","EYexact")))
 	
 	max.diff <- 1
 	iter <- 1
-		
-	while(  max.diff > delta )
-	{
+	while(  max.diff > delta ){
+	  
 		b0 <- b1
 		EY <- get.EY(Z,Y,X,b0,Se,Sp)
 		b1 <- logistic_enet( EY, X, lambda, weights, theta , b0, delta )$b
 		max.diff <- max(abs(b1 - b0))
 		iter <- iter + 1
 		if(is.na(max.diff)) break;
+		
 	}
 		
 	b.enet <- b1
 	
-	if(get.SEs)
-	{
+	if(get.SEs){
+	  
 		# Get observed information matrix by Louis' Method:
 		px <- as.numeric(logit(b.enet,X))
 		CovYiYj <- CovYiYj.approx(Z,Y,X,b.enet,Se,Sp,EY)
