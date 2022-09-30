@@ -438,7 +438,7 @@ arma::mat all_binary_sequences(int a){
 //' @param Sp A vector of testing specificities of length \code{max(Z[,3])}.
 //' @return The vector of conditional expectations.
 //' 
-//' This function computes the conditional expectations of each individual disease status, conditional on the observed assay data and the diseasestatuses of all other individuals.
+//' This function computes the conditional expectations of each individual disease status given the observed assay data.
 //' 
 //' @examples
 //' # generate individual covariate values and disease statuses
