@@ -1875,13 +1875,11 @@ neg.ll.individual <- function(b,Z,X,Se,Sp)  # this is the exact log-likelihood f
 # #' @param Se Vector of testing sensitivities of length \code{max(Z[,3])}.
 # #' @param Sp Vector of testing specificities of length \code{max(Z[,3])}.
 # #' @return The value of the negative log-likelihood for master pool testing data.
-neg.ll.masterpool <- function(b,Z,X,Se,Sp)  # this is the exact log-likelihood for master pool testing.
-{
-	
+neg.ll.masterpool <- function(b,Z,X,Se,Sp){ # this is the exact log-likelihood for master pool testing.
+
 	L <- 0
 	
-	for(j in 1:nrow(Z))
-	{
+	for(j in 1:nrow(Z)){
 		
 		c.j <- Z[j,2]
 		ind.j <- Z[j,4:(c.j+3)]
@@ -1942,16 +1940,14 @@ pzj1YjitYji <- function(tYji,Yji,Se.ind,Sp.ind,Se.pool,Sp.pool,Xmat,b)
 # #' @param Se Vector of testing sensitivities of length \code{max(Z[,3])}.
 # #' @param Sp Vector of testing specificities of length \code{max(Z[,3])}.
 # #' @return The value of the negative log-likelihood for Dorfman testing data.
-neg.ll.dorfman <- function(b, Z, X, Se, Sp)
-{
+neg.ll.dorfman <- function(b, Z, X, Se, Sp){
 
 	Pneg <- which(Z[,1]==0 & Z[,2] > 1 )
 	Ppos <- which(Z[,1]==1 & Z[,2] > 1 )
 		
 	L <- 0
 		
-	for(j in Pneg)	
-	{
+	for(j in Pneg){
 		
 		c.j <- Z[j,2]
 		
@@ -1963,8 +1959,7 @@ neg.ll.dorfman <- function(b, Z, X, Se, Sp)
 		
 	}		
 	
-	for(j in Ppos)
-	{
+	for(j in Ppos){
 		
 		c.j <- Z[j,2]
 		
@@ -1999,8 +1994,7 @@ neg.ll.dorfman <- function(b, Z, X, Se, Sp)
 # #' @param Sp Vector of testing specificities of length \code{max(Z[,3])}.
 # #' @param B Number of Monte Carlo draws.
 # #' @return Approximate value of the negative log-likelihood for array testing data.
-neg.ll.array <- function(b, Z, X, Se, Sp, B = 10000)
-{
+neg.ll.array <- function(b, Z, X, Se, Sp, B = 10000){
 
 	n <- nrow(X)
 	
@@ -2011,8 +2005,7 @@ neg.ll.array <- function(b, Z, X, Se, Sp, B = 10000)
 
 	ll <- numeric()
 	
-	for(j in 1:J)
-	{
+	for(j in 1:J){
 		
 		ind.j <- ((j-1)*cjsq+1):(j*cjsq)
 		which.rows.of.Z.j <- (1:nrow(Z))[Z[,4] %in% ind.j]	
