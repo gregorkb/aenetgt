@@ -3,7 +3,8 @@ importFrom(Rcpp,evalCpp)
 importFrom("stats", "rbinom", "rnorm", "sd")
 importFrom("graphics", "abline", "lines", "points")
 
-export(individual.assay.gen,
+export(logistic_enet,
+       individual.assay.gen,
 	masterpool.assay.gen,
 	dorfman.assay.gen,
 	array.assay.gen,
@@ -25,4 +26,5 @@ export(individual.assay.gen,
 	model1,
 	model2,
 	model3,
-	pull.diagnoses)
+	pull.diagnoses
+  )

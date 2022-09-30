@@ -13,12 +13,29 @@ CovYiYjgibbs <- function(N, p, Y, Z, W, se, sp, EY, na, GI) {
     .Call(`_aenetgt_CovYiYjgibbs`, N, p, Y, Z, W, se, sp, EY, na, GI)
 }
 
-logistic_enet_slow <- function(Yr, Xr, lambda, gammar, theta, binitr, delta) {
-    .Call(`_aenetgt_logistic_enet_slow`, Yr, Xr, lambda, gammar, theta, binitr, delta)
-}
-
-logistic_enet <- function(Yr, Xr, lambda, gammar, theta, binitr, delta) {
-    .Call(`_aenetgt_logistic_enet`, Yr, Xr, lambda, gammar, theta, binitr, delta)
+#' Compute the elastic net estimator for logistic regression
+#' 
+#' @param Yr Response vector of 1s and 0s
+#' @param Xr A design matrix with the first column a column of 1s
+#' @param lambda The tuning parameter governing the strength of the elastic net penalty
+#' @param gammar A vector of length \code{ncol(X) - 1} giving the weights applied to each covariate in the elastic net penalization
+#' @param theta Value controlling the relative strength of the ridge and lasso penalties; 1 gives lasso.
+#' @param delta Convergence tolerance
+#' @return a list with the estimated coefficients, etc.
+#' 
+#' @example
+#' # generate some data
+#' n <- 5000
+#' p <- 40
+#' b <- c(0,3,0,1,-2,0,rep(0,p-5)) # first is intercept
+#' X <- cbind(rep(1,n),scale(matrix(rnorm(n*p),nrow=n),T,T))
+#' eta <- X %*% b
+#' Y <- rbinom(n,1,1/(1 + exp(-eta)))
+#' 
+#' # compute elastic net estimator  
+#' logistic_enet(Y, X, lambda = 30, gammar = rep(1,p), theta = 0.5, delta = 0.0001)$b
+logistic_enet <- function(Yr, Xr, lambda, gammar, theta, delta) {
+    .Call(`_aenetgt_logistic_enet`, Yr, Xr, lambda, gammar, theta, delta)
 }
 
 llj_array <- function(Zjr, Zjc, Yji, whichjretest, pxji, Se, Sp, B) {

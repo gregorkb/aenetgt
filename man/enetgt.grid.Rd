@@ -4,9 +4,21 @@
 \alias{enetgt.grid}
 \title{Computes the elastic net estimators with weighted l1 norm on group testing data over a grid of lambda and theta values.}
 \usage{
-enetgt.grid(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1,
-  delta = 0.001, E.approx = FALSE, verbose = FALSE, get.SEs = FALSE,
-  ridge.include = FALSE)
+enetgt.grid(
+  X,
+  Y,
+  Z,
+  Se,
+  Sp,
+  n.lambda = 5,
+  n.theta = 3,
+  weights = 1,
+  delta = 1e-04,
+  E.approx = FALSE,
+  verbose = FALSE,
+  get.SEs = FALSE,
+  ridge.include = FALSE
+)
 }
 \arguments{
 \item{X}{Design matrix with first column a column of 1s.}
@@ -31,7 +43,7 @@ test specificity for individual testing, if applicable.}
 
 \item{delta}{Convergence criterion.}
 
-\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.}
+\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 
 \item{verbose}{Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.}
 
@@ -51,7 +63,7 @@ Computes the elastic net estimators with weighted l1 norm on group testing data 
 }
 \examples{
 # generate individual covariate values and disease statuses
-N <- 160
+N <- 2000
 data <- model1(N)
 X <- data$X
 Y.true <- data$Yi

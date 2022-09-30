@@ -4,8 +4,20 @@
 \alias{enetgt}
 \title{Computes the elastic net estimator with weighted l1 norm on group testing data.}
 \usage{
-enetgt(X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1,
-  delta = 0.001, E.approx = FALSE, get.SEs = FALSE)
+enetgt(
+  X,
+  Y,
+  Z,
+  Se,
+  Sp,
+  lambda,
+  theta,
+  weights = 1,
+  binit = 1,
+  delta = 1e-04,
+  E.approx = FALSE,
+  get.SEs = FALSE
+)
 }
 \arguments{
 \item{X}{Design matrix with first column a column of 1s.}
@@ -32,7 +44,7 @@ test specificity for individual testing, if applicable.}
 
 \item{delta}{Convergence criterion.}
 
-\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.}
+\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 
 \item{get.SEs}{Logical.  If \code{TRUE} then estimated standard errors for the estimates are returned.}
 }
@@ -46,7 +58,7 @@ Computes the elastic net estimator with weighted l1 norm on group testing data.
 }
 \examples{
 # generate individual covariate values and disease statuses
-N <- 160
+N <- 5000
 data <- model1(N)
 X <- data$X
 Y.true <- data$Yi

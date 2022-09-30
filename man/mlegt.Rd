@@ -4,8 +4,17 @@
 \alias{mlegt}
 \title{Computes the mle on group testing data.}
 \usage{
-mlegt(X, Y, Z, Se, Sp, binit = 1, delta = 0.001, E.approx = FALSE,
-  get.SEs = FALSE)
+mlegt(
+  X,
+  Y,
+  Z,
+  Se,
+  Sp,
+  binit = 1,
+  delta = 1e-04,
+  E.approx = FALSE,
+  get.SEs = FALSE
+)
 }
 \arguments{
 \item{X}{Design matrix with first column a column of 1s.}
@@ -26,7 +35,7 @@ test specificity for individual testing, if applicable.}
 
 \item{delta}{Convergence criterion.}
 
-\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.}
+\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 
 \item{get.SEs}{Logical.  If \code{TRUE} then estimated standard errors for the maximum likelihood estimators are returned.}
 }
@@ -40,7 +49,7 @@ Computes the mle on group testing data.
 }
 \examples{
 # generate individual covariate values and disease statuses
-N <- 160
+N <- 5000
 data <- model0(N)
 X <- data$X
 Y.true <- data$Yi

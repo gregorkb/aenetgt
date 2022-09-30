@@ -4,8 +4,20 @@
 \alias{cv.enetgt.grid}
 \title{Peforms crossvalidation to select a combination of tuning parameters.}
 \usage{
-cv.enetgt.grid(cv.fold.data, regime, Se, Sp, lambda.seq, theta.seq, weights,
-  B.INIT, delta = 0.01, E.approx = FALSE, verbose = FALSE, plot = FALSE)
+cv.enetgt.grid(
+  cv.fold.data,
+  regime,
+  Se,
+  Sp,
+  lambda.seq,
+  theta.seq,
+  weights,
+  B.INIT,
+  delta = 1e-04,
+  E.approx = FALSE,
+  verbose = FALSE,
+  plot = FALSE
+)
 }
 \arguments{
 \item{cv.fold.data}{Output from any of the functions \code{get.xx.cv.fold.data}, where \code{xx} is \code{individual}, \code{masterpool}, \code{dorfman}, or \code{array}.}
@@ -30,7 +42,7 @@ test specificity for individual testing, if applicable.}
 
 \item{delta}{Convergence criterion.}
 
-\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EY.approx()}. If \code{FALSE}, then E-step done with \code{EY.exact()}.}
+\item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 
 \item{verbose}{Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.}
 
@@ -43,7 +55,8 @@ A list which includes the chosen values of the tuning parameters according to cr
 Peforms crossvalidation to select a combination of tuning parameters.
 }
 \examples{
-data <- model0(200)
+N <- 2000
+data <- model1(N)
 X <- data$X
 Y.true <- data$Y
 # subject individuals to individual testing
@@ -53,17 +66,22 @@ assay.data <- individual.assay.gen(Y.true,Se,Sp,cj=1)
 Z <- assay.data$Z
 Y <- assay.data$Y
 # compute the mle on the individual testing data:
-mlegt.out <- mlegt(X,Y,Z,Se,Sp,delta=.01)
+mlegt.out <- mlegt(X,Y,Z,Se,Sp)
 b.mle <- mlegt.out$b.mle
 # compute adaptive elastic net estimator over a grid of tuning parameter values
 n.lambda <- 8
 n.theta <- 2
-enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]),delta=.01)
+enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]))
 # make a choice of the tuning parameter using 3-fold crossvalidation:
-cv.fold.data <- get.individual.cv.fold.data(X,Y,Z,K=3)
-cv.enetgt.grid.out <- cv.enetgt.grid(cv.fold.data,"individual",Se,Sp,enetgt.grid.out$lambda.seq,
-					enetgt.grid.out$theta.seq,weights=1/abs(b.mle[-1]),
-					B.INIT=enetgt.grid.out$B.ENET,delta=.01)
+cv.fold.data <- get.individual.cv.fold.data(X,Y,Z,K=5)
+cv.enetgt.grid.out <- cv.enetgt.grid(cv.fold.data,"individual",
+                                     Se,
+                                     Sp,
+                                     enetgt.grid.out$lambda.seq,
+                                     enetgt.grid.out$theta.seq,
+                                     weights=1/abs(b.mle[-1]),
+                                     B.INIT=enetgt.grid.out$B.ENET)
+
 b.aenet.cv <- enetgt.grid.out$B.ENET[cv.enetgt.grid.out$cv.ind[1],,cv.enetgt.grid.out$cv.ind[2]]
 b.aenet.cv
 }

@@ -159,14 +159,33 @@ Rcpp::NumericMatrix CovYiYjgibbs(int N, NumericVector p, NumericMatrix Y, Numeri
   return CovYiYj;
 }
 
-
+//' Compute the elastic net estimator for logistic regression
+//' 
+//' @param Yr Response vector of 1s and 0s
+//' @param Xr A design matrix with the first column a column of 1s
+//' @param lambda The tuning parameter governing the strength of the elastic net penalty
+//' @param gammar A vector of length \code{ncol(X) - 1} giving the weights applied to each covariate in the elastic net penalization
+//' @param theta Value controlling the relative strength of the ridge and lasso penalties; 1 gives lasso.
+//' @param delta Convergence tolerance
+//' @return a list with the estimated coefficients, etc.
+//' 
+//' @example
+//' # generate some data
+//' n <- 5000
+//' p <- 40
+//' b <- c(0,3,0,1,-2,0,rep(0,p-5)) # first is intercept
+//' X <- cbind(rep(1,n),scale(matrix(rnorm(n*p),nrow=n),T,T))
+//' eta <- X %*% b
+//' Y <- rbinom(n,1,1/(1 + exp(-eta)))
+//' 
+//' # compute elastic net estimator  
+//' logistic_enet(Y, X, lambda = 30, gammar = rep(1,p), theta = 0.5, delta = 0.0001)$b
 // [[Rcpp::export()]]
 Rcpp::List logistic_enet(Rcpp::NumericVector Yr, 
                          Rcpp::NumericMatrix Xr,
                          float lambda,
                          Rcpp::NumericVector gammar,
                          float theta,
-                         Rcpp::NumericVector binitr,
                          float delta){
                            
 		  
@@ -177,12 +196,11 @@ Rcpp::List logistic_enet(Rcpp::NumericVector Yr,
 		  arma::mat X(Xr.begin(), n, p+1, false); 
 		  arma::colvec Y(Yr.begin(),Yr.size(), false);
 		  arma::colvec gamma(gammar.begin(),gammar.size(),false);
-		  arma::colvec binit(binitr.begin(),binitr.size(),false);
 		  
-		  arma::colvec b = binit;
-		  arma::colvec b0 = binit;
-		  arma::colvec b00 = binit;
-		  arma::colvec diff = arma::ones(p+1);
+		  arma::colvec b = arma::zeros(p+1);
+		  arma::colvec b0(p+1);
+		  arma::colvec b00(p+1);
+		  arma::colvec diff(p+1);
 		  
 		  arma::colvec eta = arma::zeros(n);
 		  arma::colvec pr(n);

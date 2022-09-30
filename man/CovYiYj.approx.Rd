@@ -50,7 +50,7 @@ assay.data <- dorfman.assay.gen(Y.true,Se,Sp,cj)
 Z <- assay.data$Z
 Y <- assay.data$Y
 b.mle <- mlegt(X, Y, Z, Se, Sp, delta = .01)$b.mle # compute mle
-EY <- EY.exact(Z,Y,X,b.mle,Se,Sp)
+EY <- EYexact(Z,Y,X,b.mle,Se,Sp)
 px <- as.numeric(logit(b.mle,X))
 CovYiYj <- CovYiYj.approx(Z,Y,X,b.mle,Se,Sp,EY)
 # use Louis' method to get the observed information matrix

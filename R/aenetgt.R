@@ -601,7 +601,7 @@ CovYiYj.approx <- function (Z, Y, X, b, Se, Sp, EY, GI = 50000)
 #'
 #' @examples
 #' # generate individual covariate values and disease statuses
-#' N <- 160
+#' N <- 5000
 #' data <- model0(N)
 #' X <- data$X
 #' Y.true <- data$Yi
@@ -613,7 +613,7 @@ CovYiYj.approx <- function (Z, Y, X, b, Se, Sp, EY, GI = 50000)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' mlegt.out <- mlegt(X, Y, Z, Se, Sp, delta = .01) # compute mle
-mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, get.SEs = FALSE)
+mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-4, E.approx = FALSE, get.SEs = FALSE)
 {
 
 	p <- ncol(X) - 1 # The first column of X is ones
@@ -636,7 +636,8 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 	  
 		b0 <- b1
 		EY <- get.EY(Z,Y,X,b0,Se,Sp)
-		b1 <- logistic_enet(EY, X, 0, rep(1,ncol(X)), 0, b0, delta)$b
+		# b1 <- logistic_enet(EY, X, 0, rep(1,ncol(X)), 0, b0, delta)$b
+		b1 <- logistic_enet(EY, X, 0, rep(1,ncol(X)), 0, delta)$b
 		max.diff <- max(abs(b1 - b0))
 		iter <- iter + 1
 		if(is.na(max.diff)) break;
@@ -700,7 +701,7 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 #'
 #' @examples
 #' # generate individual covariate values and disease statuses
-#' N <- 160
+#' N <- 5000
 #' data <- model1(N)
 #' X <- data$X
 #' Y.true <- data$Yi
@@ -716,7 +717,7 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-3, E.approx = FALSE, g
 #' # compute adaptive elastic net with weights from the elastic net estimator
 #' a.enetgt.out <- enetgt(X, Y, Z, Se, Sp, lambda=.5, theta=.5, 
 #'                        weights = 1/abs(enetgt.out$b.enet[-1])) 
-enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delta = 1e-3, E.approx = FALSE, get.SEs = FALSE){
+enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delta = 1e-4, E.approx = FALSE, get.SEs = FALSE){
 	
 	p <- ncol(X) - 1 # The first column of X is ones
 	
@@ -744,7 +745,8 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 	  
 		b0 <- b1
 		EY <- get.EY(Z,Y,X,b0,Se,Sp)
-		b1 <- logistic_enet( EY, X, lambda, weights, theta , b0, delta )$b
+		# b1 <- logistic_enet( EY, X, lambda, weights, theta, b0, delta )$b
+		b1 <- logistic_enet( EY, X, lambda, weights, theta, delta )$b
 		max.diff <- max(abs(b1 - b0))
 		iter <- iter + 1
 		if(is.na(max.diff)) break;
@@ -819,7 +821,7 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 #'
 #' @examples
 #' # generate individual covariate values and disease statuses
-#' N <- 160
+#' N <- 2000
 #' data <- model1(N)
 #' X <- data$X
 #' Y.true <- data$Yi
@@ -834,7 +836,7 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 #' n.theta <- 2
 #' # compute the elastic net estimator with weights = 1 over grid of lambda and theta values
 #' enetgt.grid.out <- enetgt.grid(X, Y, Z, Se, Sp, n.lambda, n.theta, weights = 1) 
-enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, delta = 0.001, E.approx = FALSE, verbose = FALSE, get.SEs = FALSE, ridge.include = FALSE) 
+enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, delta = 1e-4, E.approx = FALSE, verbose = FALSE, get.SEs = FALSE, ridge.include = FALSE) 
 {
 		
 	if (length(weights) == 1) {
@@ -1522,8 +1524,8 @@ get.dorfman.individual.cv.fold.data <- function(X.dorf,Y.dorf,Z.dorf,X.ind,Y.ind
 #' @return A list which includes the chosen values of the tuning parameters according to crossvalidation.
 #'
 #' @examples
-# generate covariate values and disease statuses for 200 individuals from model0:
-#' data <- model0(200)
+#' N <- 2000
+#' data <- model1(N)
 #' X <- data$X
 #' Y.true <- data$Y
 #' # subject individuals to individual testing
@@ -1533,20 +1535,25 @@ get.dorfman.individual.cv.fold.data <- function(X.dorf,Y.dorf,Z.dorf,X.ind,Y.ind
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' # compute the mle on the individual testing data:
-#' mlegt.out <- mlegt(X,Y,Z,Se,Sp,delta=.01)
+#' mlegt.out <- mlegt(X,Y,Z,Se,Sp)
 #' b.mle <- mlegt.out$b.mle
 #' # compute adaptive elastic net estimator over a grid of tuning parameter values
 #' n.lambda <- 8
 #' n.theta <- 2
-#' enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]),delta=.01)
+#' enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]))
 #' # make a choice of the tuning parameter using 3-fold crossvalidation:
-#' cv.fold.data <- get.individual.cv.fold.data(X,Y,Z,K=3)
-#' cv.enetgt.grid.out <- cv.enetgt.grid(cv.fold.data,"individual",Se,Sp,enetgt.grid.out$lambda.seq,
-#'						enetgt.grid.out$theta.seq,weights=1/abs(b.mle[-1]),
-#'						B.INIT=enetgt.grid.out$B.ENET,delta=.01)
+#' cv.fold.data <- get.individual.cv.fold.data(X,Y,Z,K=5)
+#' cv.enetgt.grid.out <- cv.enetgt.grid(cv.fold.data,"individual",
+#'                                      Se,
+#'                                      Sp,
+#'                                      enetgt.grid.out$lambda.seq,
+#'                                      enetgt.grid.out$theta.seq,
+#'                                      weights=1/abs(b.mle[-1]),
+#'                                      B.INIT=enetgt.grid.out$B.ENET)
+#' 
 #' b.aenet.cv <- enetgt.grid.out$B.ENET[cv.enetgt.grid.out$cv.ind[1],,cv.enetgt.grid.out$cv.ind[2]]
 #' b.aenet.cv
-cv.enetgt.grid <- function( cv.fold.data,regime, Se, Sp, lambda.seq, theta.seq, weights, B.INIT, delta = 1e-2, E.approx = 
+cv.enetgt.grid <- function( cv.fold.data,regime, Se, Sp, lambda.seq, theta.seq, weights, B.INIT, delta = 1e-4, E.approx = 
 FALSE,verbose=FALSE,plot=FALSE)
 {
 		
