@@ -327,8 +327,8 @@ return(list("Z"=Z, "Y"=Y, "D"=D))
 
 #' Pulls individual diagnoses from group testing data if available
 #'
-#' @param \code{Z} output from one of the functions \code{individial.assay.gen()},\code{masterpool.assay.gen()},\code{dorfman.assay.gen()}, or \code{array.assay.gen()}.
-#' @param \code{Y} output from one of the functions \code{individial.assay.gen()},\code{masterpool.assay.gen()},\code{dorfman.assay.gen()}, or \code{array.assay.gen()}.
+#' @param Z output from one of the functions \code{individial.assay.gen()},\code{masterpool.assay.gen()},\code{dorfman.assay.gen()}, or \code{array.assay.gen()}.
+#' @param Y output from one of the functions \code{individial.assay.gen()},\code{masterpool.assay.gen()},\code{dorfman.assay.gen()}, or \code{array.assay.gen()}.
 #' @return a vector of 0s and 1s which are the individual diagnoses, NULL if \code{Z} and \code{Y} come from \code{masterpool.assay.gen()}.
 #'
 #' This function pulls the individual diagnoses from
@@ -360,8 +360,7 @@ pull.diagnoses <- function(Z,Y)
 #'
 #' @param Z Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}, or \code{array.assay.gen}.
 #' @param Y Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}, or \code{array.assay.gen}.
-#' @param X Design matrix with first column a column of 1s.
-#' @param b Parameter values at which to compute the conditional expectations.
+#' @param eta the value of the linear predictor
 #' @param Se A vector of testing sensitivities of length \code{max(Z[,3])}.
 #' @param Sp A vector of testing specificities of length \code{max(Z[,3])}.
 #' @return The vector of conditional expectations.
@@ -386,14 +385,15 @@ pull.diagnoses <- function(Z,Y)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' b <- data$b
-#' EY <- EYexact(Z,Y,X,b,Se,Sp)
-EYexact_R<-function(Z,Y,X,b,Se,Sp){
+#' eta <- X %*% b
+#' EY <- EYexact_R(Z,Y,eta,Se,Sp)
+EYexact_R <- function(Z,Y,eta,Se,Sp){
 
-n<-dim(Y)[1]
-p<-logit(b,X)
-EY<-rep(-99,n)
-id.go<-(1:n)[Y[,2]==1] # individuals tested in a group only
-id.rt<-(1:n)[Y[,2]>1]  # individuals who are retested after being tested in a pool
+n <- dim(Y)[1]
+p <- 1/(1 + exp(-eta))
+EY <- rep(-99,n)
+id.go <- (1:n)[Y[,2]==1] # individuals tested in a group only
+id.rt <- (1:n)[Y[,2]>1]  # individuals who are retested after being tested in a pool
 
 
 # Handles MPT only or negative master pools under Dorfman testing
@@ -527,8 +527,9 @@ return(EY)
 #' assay.data <- dorfman.assay.gen(Y.true,Se,Sp,cj)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
-#' b.mle <- mlegt(X, Y, Z, Se, Sp, delta = .01)$b.mle # compute mle
-#' EY <- EYexact(Z,Y,X,b.mle,Se,Sp)
+#' b.mle <- mlegt(X, Y, Z, Se, Sp, tol = .01)$b.mle # compute mle
+#' eta.mle <- X %*% b.mle
+#' EY <- EYexact(Z,Y,eta.mle,Se,Sp)
 #' px <- as.numeric(logit(b.mle,X))
 #' CovYiYj <- CovYiYj.approx(Z,Y,X,b.mle,Se,Sp,EY)
 #' # use Louis' method to get the observed information matrix
@@ -592,7 +593,7 @@ CovYiYj.approx <- function (Z, Y, X, b, Se, Sp, EY, GI = 50000)
 #'      testing specificity for pools and the second entry is the 
 #'      test specificity for individual testing, if applicable.
 #' @param binit Parameter value at which to initialize the EM-algorithm. The default is \code{b=1}, for which an initial value is chosen internally.
-#' @param delta Convergence criterion.
+#' @param tol Convergence criterion.
 #' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the maximum likelihood estimators are returned.
 #' @return The maximum likelihood estimator.
@@ -612,41 +613,49 @@ CovYiYj.approx <- function (Z, Y, X, b, Se, Sp, EY, GI = 50000)
 #' assay.data <- dorfman.assay.gen(Y.true,Se,Sp,cj)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
-#' mlegt.out <- mlegt(X, Y, Z, Se, Sp, delta = .01) # compute mle
-mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-4, E.approx = FALSE, get.SEs = FALSE)
-{
+#' mlegt.out <- mlegt(X, Y, Z, Se, Sp, tol = .01) # compute mle
+mlegt <- function( X, Y, Z, Se, Sp, binit = NULL, tol = 1e-4, E.approx = FALSE, get.SEs = FALSE){
 
 	p <- ncol(X) - 1 # The first column of X is ones
+	n <- nrow(X)
 	
-	if(length(binit) == 1)
-	{ 
+	if(is.null(binit)){ 
 		
-		b1 <- c(-2,rep(0,p))
-
+		b <- c(-2,rep(0,p))
+    eta <- rep(0,n)
+    
 	} else {
 
-		b1 <- binit
+		b <- binit
+		eta <- X %*% b
+		
 	}
 	
 	get.EY <- eval(parse(text = ifelse(E.approx, "EYapprox","EYexact")))
 
-	max.diff <- 1
+	
 	iter <- 1
-	while(  max.diff > delta ){
+	conv <- FALSE
+	while(  conv == FALSE ){
 	  
-		b0 <- b1
-		EY <- get.EY(Z,Y,X,b0,Se,Sp)
-		# b1 <- logistic_enet(EY, X, 0, rep(1,ncol(X)), 0, b0, delta)$b
-		b1 <- logistic_enet(EY, X, 0, rep(1,ncol(X)), 0, delta)$b
-		max.diff <- max(abs(b1 - b0))
+		b0 <- b
+		
+		EY <- get.EY(Z,Y,eta,Se,Sp)
+		logistic_enet.out <- logistic_enet(EY, X, 0, rep(1,ncol(X)), 0, tol)
+		b <- logistic_enet.out$b
+		eta <- logistic_enet.out$eta
+		
+		delta <- max(abs(b - b0))
+		if(is.na(delta)) break;
+		
+		conv <-  delta < tol
 		iter <- iter + 1
-		if(is.na(max.diff)) break;
 		
 	}
 	
-	b.mle <- as.numeric(b1)
+	b.mle <- as.numeric(b)
 		
-	if(get.SEs & is.na(b.mle[1])==FALSE){
+	if(get.SEs & is.na(b.mle[1]) == FALSE){
 	  
 		# Get observed information matrix by Louis' Method:
 		px <- as.numeric(logit(b.mle,X))
@@ -663,11 +672,9 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-4, E.approx = FALSE, g
 		
 	}
 	
-	conv <- ifelse(is.na(max.diff),FALSE,TRUE)
-
 	output <- list(	b.mle = b.mle,
 	                b.mle.se = b.mle.se,
-	                delta = delta,
+	                tol = tol,
 	                Se = Se,
 	                Sp = Sp,
 	                conv = conv,
@@ -692,7 +699,7 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-4, E.approx = FALSE, g
 #' @param theta Ridge versus lasso penalty mixer.
 #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
 #' @param binit Initial values for EM-algorithm.
-#' @param delta Convergence criterion.
+#' @param tol Convergence criterion.
 #' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the estimates are returned.
 #' @return The elastic net estimator with weighted l1 norm under the choices of \code{lambda}, \code{theta}, and \code{weights}.
@@ -717,18 +724,20 @@ mlegt <- function( X, Y, Z, Se, Sp, binit = 1, delta = 1e-4, E.approx = FALSE, g
 #' # compute adaptive elastic net with weights from the elastic net estimator
 #' a.enetgt.out <- enetgt(X, Y, Z, Se, Sp, lambda=.5, theta=.5, 
 #'                        weights = 1/abs(enetgt.out$b.enet[-1])) 
-enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delta = 1e-4, E.approx = FALSE, get.SEs = FALSE){
+enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = NULL, tol = 1e-4, E.approx = FALSE, get.SEs = FALSE){
 	
 	p <- ncol(X) - 1 # The first column of X is ones
+	n <- nrow(X)
 	
-	if(length(binit) == 1){ 
+	if(is.null(binit)){ 
 		
-		b1 <- c(-2,rep(0,p))
-
+		b <- c(-2,rep(0,p))
+    eta <- rep(0,n)
+    
 	} else {
 
-		b1 <- binit
-		
+		b <- binit
+		eta <- X %*% b
 	}
 	
 	if(length(weights)==1){
@@ -739,21 +748,25 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 	
 	get.EY <- eval(parse(text = ifelse(E.approx, "EYapprox","EYexact")))
 	
-	max.diff <- 1
+	conv <- FALSE
 	iter <- 1
-	while(  max.diff > delta ){
+	while( conv == FALSE ){
 	  
-		b0 <- b1
-		EY <- get.EY(Z,Y,X,b0,Se,Sp)
-		# b1 <- logistic_enet( EY, X, lambda, weights, theta, b0, delta )$b
-		b1 <- logistic_enet( EY, X, lambda, weights, theta, delta )$b
-		max.diff <- max(abs(b1 - b0))
+		b0 <- b
+		EY <- get.EY(Z,Y,eta,Se,Sp)
+		logistic_enet.out <- logistic_enet( EY, X, lambda, weights, theta, tol )
+		b <- logistic_enet.out$b
+		eta <- logistic_enet.out$eta
+		
+		delta <- max(abs(b - b0))
+		if(is.na(delta)) break;
+		
+		conv <-  delta < tol
 		iter <- iter + 1
-		if(is.na(max.diff)) break;
 		
 	}
 		
-	b.enet <- b1
+	b.enet <- b
 	
 	if(get.SEs){
 	  
@@ -775,15 +788,13 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 		
 		b.enet.se <- rep( NA , p + 1 )
 	}
-		
-	conv <- ifelse(is.na(max.diff),FALSE,TRUE)
-		
+	
 	output <- list(	b.enet = b.enet,
 					b.enet.se = b.enet.se,
 					lambda = lambda,
 					theta = theta,
 					weights = weights,
-					delta = delta,
+					tol = tol,
 					Se = Se,
 					Sp = Sp,
 					conv = conv,
@@ -808,7 +819,7 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 #' @param n.lambda Number of lambda values for which to compute the estimator.
 #' @param n.theta Number of theta values for which to compute the estimator.
 #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
-#' @param delta Convergence criterion.
+#' @param tol Convergence criterion.
 #' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param verbose Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.
 #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the estimates are returned.
@@ -836,7 +847,7 @@ enetgt <- function( X, Y, Z, Se, Sp, lambda, theta, weights = 1, binit = 1, delt
 #' n.theta <- 2
 #' # compute the elastic net estimator with weights = 1 over grid of lambda and theta values
 #' enetgt.grid.out <- enetgt.grid(X, Y, Z, Se, Sp, n.lambda, n.theta, weights = 1) 
-enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, delta = 1e-4, E.approx = FALSE, verbose = FALSE, get.SEs = FALSE, ridge.include = FALSE) 
+enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, tol = 1e-4, E.approx = FALSE, verbose = FALSE, get.SEs = FALSE, ridge.include = FALSE) 
 {
 		
 	if (length(weights) == 1) {
@@ -857,15 +868,16 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
     b.keep <- c(-2, rep(0.01, p.keep))
     max.diff <- 1
     
-    if(ridge.include)
-    {
+    if(ridge.include){
+      
     	theta.seq <- c(0, 1/2^((n.theta - 2):0))
-   	    theta.temp <- theta.seq[2]
+   	  theta.temp <- theta.seq[2]
    	    
     } else {
     	
     	theta.seq <- c(1/2^((n.theta - 1):0))
-   	    theta.temp <- theta.seq[1]
+   	  theta.temp <- theta.seq[1]
+   	  
     }
 
     
@@ -879,7 +891,7 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
     
             EY <- get.EY(Z, Y, X.keep, b.keep, Se, Sp)
             lambda <- max(abs(t(EY - mean(EY) * (1 - mean(EY))) %*% X.keep[, -1])/(theta.temp * weights.keep))
-            b.keep <- enetgt(X.keep, Y, Z, Se, Sp, lambda, theta.temp, weights.keep, b.keep, delta = 0.01, E.approx)$b.enet
+            b.keep <- enetgt(X.keep, Y, Z, Se, Sp, lambda, theta.temp, weights.keep, b.keep, tol = 0.01, E.approx)$b.enet
             iter <- iter + 1
         
         }
@@ -887,7 +899,7 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
     }	else {
     	
         lambda <- max(abs(t(D - mean(D) * (1 - mean(D))) %*% X.keep[, -1])/theta.temp * weights.keep)
-        b.keep <- enetgt(X.keep, Y, Z, Se, Sp, lambda, theta.temp, weights.keep, b.keep, delta = 0.01, E.approx)$b.enet
+        b.keep <- enetgt(X.keep, Y, Z, Se, Sp, lambda, theta.temp, weights.keep, b.keep, tol = 0.01, E.approx)$b.enet
         
     }
     
@@ -905,7 +917,7 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
     	{
     		
 	       	b.keep <- b.enet.keep
-	        enetgt.out.keep <- enetgt(X.keep, Y, Z, Se, Sp, lambda.seq[t], theta.seq[s], weights.keep, b.keep, delta, E.approx, get.SEs=get.SEs)
+	        enetgt.out.keep <- enetgt(X.keep, Y, Z, Se, Sp, lambda.seq[t], theta.seq[s], weights.keep, b.keep, tol, E.approx, get.SEs=get.SEs)
 	        
 	        b.enet.keep <- enetgt.out.keep$b.enet
 	        b.enet.se.keep <- enetgt.out.keep$b.enet.se
@@ -921,14 +933,14 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
     
     p <- ncol(X) - 1
     B.ENET <- B.ENET.SE <- array(0, dim = c(n.lambda, p + 1, n.theta))
-	B.ENET[,c(1,1+keep),] <- B.ENET.keep
-	B.ENET.SE[,c(1,1+keep),] <- B.ENET.SE.keep	
+	  B.ENET[,c(1,1+keep),] <- B.ENET.keep
+	  B.ENET.SE[,c(1,1+keep),] <- B.ENET.SE.keep	
 	
     output <- list(	B.ENET = B.ENET, 
     				B.ENET.SE = B.ENET.SE,
     				lambda.seq = lambda.seq, 
         			theta.seq = theta.seq, 
-        			delta = delta, 
+        			tol = tol, 
         			E.approx = E.approx, 
         			Se = Se, 
         			Sp = Sp, 
@@ -955,7 +967,7 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
 # #' @param theta.seq Sequence of theta values at which the solution path will be computed.
 # #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
 # #' @param B.INIT Initial values for EM-algorithm.
-# #' @param delta Convergence criterion.
+# #' @param tol Convergence criterion.
 # #' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 # #' @param verbose Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.
 # #' @param get.SEs Logical.  If \code{TRUE} then estimated standard errors for the estimates are returned.
@@ -964,7 +976,7 @@ enetgt.grid <-function(X, Y, Z, Se, Sp, n.lambda = 5, n.theta = 3, weights = 1, 
 # #' This function implements a penalized EM-algorithm to find the elastic net estimator with weighted l1 norm based on the observed data \code{X},
 # #' \code{Y}, \code{Z}, and the sensitivities and specificities in \code{Se}, \code{Sp} over the grid of lambda and theta values specified in 
 # #' \code{lambda.seq} and \code{theta.seq}.
-enetgt.grid.0 <- function( X, Y, Z, Se, Sp, lambda.seq, theta.seq, weights = 1, B.INIT, delta = 1e-3, E.approx = FALSE, verbose = FALSE, get.SEs=FALSE)
+enetgt.grid.0 <- function( X, Y, Z, Se, Sp, lambda.seq, theta.seq, weights = 1, B.INIT, tol = 1e-3, E.approx = FALSE, verbose = FALSE, get.SEs=FALSE)
 {
 	
 	if (length(weights) == 1) {
@@ -1008,7 +1020,7 @@ enetgt.grid.0 <- function( X, Y, Z, Se, Sp, lambda.seq, theta.seq, weights = 1, 
 			
 				b.keep <- B.INIT.keep[t,,s]
 				
-				enetgt.out.keep <- enetgt( X.keep, Y, Z, Se, Sp, lambda.seq[t], theta.seq[s], weights.keep, b.keep, delta, E.approx, get.SEs=get.SEs)
+				enetgt.out.keep <- enetgt( X.keep, Y, Z, Se, Sp, lambda.seq[t], theta.seq[s], weights.keep, b.keep, tol, E.approx, get.SEs=get.SEs)
 									
 				b.enet.keep <- enetgt.out.keep$b.enet
 										
@@ -1028,12 +1040,12 @@ enetgt.grid.0 <- function( X, Y, Z, Se, Sp, lambda.seq, theta.seq, weights = 1, 
 			
 	    p <- ncol(X) - 1
 	    B.ENET <-  array(0, dim = c(n.lambda, p + 1, n.theta))
-		B.ENET[,c(1,1+keep),] <- B.ENET.keep
+		  B.ENET[,c(1,1+keep),] <- B.ENET.keep
 			
 		output <- list(	B.ENET = B.ENET,
 						lambda.seq = lambda.seq,
 						theta.seq = theta.seq,
-						delta = delta,
+						tol = tol,
 						E.approx = E.approx,
 						Se = Se,
 						Sp = Sp,
@@ -1517,7 +1529,7 @@ get.dorfman.individual.cv.fold.data <- function(X.dorf,Y.dorf,Z.dorf,X.ind,Y.ind
 #' @param theta.seq Sequence of theta values at which the weighted elastic net estimator will be computed.
 #' @param weights Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.
 #' @param B.INIT Array of values to be used to initialize the EM-algorithm at each of the tuning paramter combinations specified in \code{lambda.seq} and \code{theta.seq}.
-#' @param delta Convergence criterion.
+#' @param tol Convergence criterion.
 #' @param E.approx Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.
 #' @param verbose Logical. If \code{TRUE} then progress is reported after computation of the estimator at each tuning parameter pair.
 #' @param plot Logical. If \code{TRUE} then a plot is produced showing the mean of the crossvalidation estimates of the deviance over the null deviance.
@@ -1553,7 +1565,7 @@ get.dorfman.individual.cv.fold.data <- function(X.dorf,Y.dorf,Z.dorf,X.ind,Y.ind
 #' 
 #' b.aenet.cv <- enetgt.grid.out$B.ENET[cv.enetgt.grid.out$cv.ind[1],,cv.enetgt.grid.out$cv.ind[2]]
 #' b.aenet.cv
-cv.enetgt.grid <- function( cv.fold.data,regime, Se, Sp, lambda.seq, theta.seq, weights, B.INIT, delta = 1e-4, E.approx = 
+cv.enetgt.grid <- function( cv.fold.data,regime, Se, Sp, lambda.seq, theta.seq, weights, B.INIT, tol = 1e-4, E.approx = 
 FALSE,verbose=FALSE,plot=FALSE)
 {
 		
@@ -1583,7 +1595,7 @@ FALSE,verbose=FALSE,plot=FALSE)
 													theta.seq = theta.seq,
 													weights = weights,
 													B.INIT = B.INIT,
-												 	delta = delta,
+												 	tol = tol,
 												 	E.approx = E.approx,
 												 	verbose = verbose)
 												 	
@@ -1678,12 +1690,12 @@ FALSE,verbose=FALSE,plot=FALSE)
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' # compute the mle on the individual testing data:
-#' mlegt.out <- mlegt(X,Y,Z,Se,Sp,delta=.01)
+#' mlegt.out <- mlegt(X,Y,Z,Se,Sp,tol=.01)
 #' b.mle <- mlegt.out$b.mle
 #' # compute adaptive elastic net estimator over a grid of tuning parameter values
 #' n.lambda <- 8
 #' n.theta <- 2
-#' enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]),delta=.01)
+#' enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]),tol=.01)
 #' # make choices of the tuning parameters according to the aic, bic, and eric criteria
 #' aic.bic.eric.enetgt.grid.out <- aic.bic.eric.enetgt.grid(enetgt.grid.out,Z,X,Se,Sp,"individual")
 #' b.aenet.aic <- aic.bic.eric.enetgt.grid.out$b.enet.aic

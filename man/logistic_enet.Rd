@@ -4,7 +4,7 @@
 \alias{logistic_enet}
 \title{Compute the elastic net estimator for logistic regression}
 \usage{
-logistic_enet(Yr, Xr, lambda, gammar, theta, delta)
+logistic_enet(Yr, Xr, lambda, gammar, theta, tol)
 }
 \arguments{
 \item{Yr}{Response vector of 1s and 0s}
@@ -17,11 +17,23 @@ logistic_enet(Yr, Xr, lambda, gammar, theta, delta)
 
 \item{theta}{Value controlling the relative strength of the ridge and lasso penalties; 1 gives lasso.}
 
-\item{delta}{Convergence tolerance}
+\item{tol}{Convergence tolerance}
 }
 \value{
 a list with the estimated coefficients, etc.
 }
 \description{
 Compute the elastic net estimator for logistic regression
+}
+\examples{
+# generate some data
+n <- 5000
+p <- 40
+b <- c(0,3,0,1,-2,0,rep(0,p-5)) # first is intercept
+X <- cbind(rep(1,n),scale(matrix(rnorm(n*p),nrow=n),TRUE,TRUE))
+eta <- X \%*\% b
+Y <- rbinom(n,1,1/(1 + exp(-eta)))
+
+# compute elastic net estimator  
+logistic_enet(Y, X, lambda = 30, gammar = rep(1,p), theta = 0.5, tol = 0.0001)$b
 }

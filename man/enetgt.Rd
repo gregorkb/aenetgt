@@ -13,8 +13,8 @@ enetgt(
   lambda,
   theta,
   weights = 1,
-  binit = 1,
-  delta = 1e-04,
+  binit = NULL,
+  tol = 1e-04,
   E.approx = FALSE,
   get.SEs = FALSE
 )
@@ -42,7 +42,7 @@ test specificity for individual testing, if applicable.}
 
 \item{binit}{Initial values for EM-algorithm.}
 
-\item{delta}{Convergence criterion.}
+\item{tol}{Convergence criterion.}
 
 \item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 

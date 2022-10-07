@@ -13,7 +13,7 @@ enetgt.grid(
   n.lambda = 5,
   n.theta = 3,
   weights = 1,
-  delta = 1e-04,
+  tol = 1e-04,
   E.approx = FALSE,
   verbose = FALSE,
   get.SEs = FALSE,
@@ -41,7 +41,7 @@ test specificity for individual testing, if applicable.}
 
 \item{weights}{Vector of weights to be used in weighting the l1 penalty. Default is \code{weights=1}, which causes equal weights to be used for each coefficient.}
 
-\item{delta}{Convergence criterion.}
+\item{tol}{Convergence criterion.}
 
 \item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 

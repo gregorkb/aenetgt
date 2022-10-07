@@ -13,7 +13,7 @@ cv.enetgt.grid(
   theta.seq,
   weights,
   B.INIT,
-  delta = 1e-04,
+  tol = 1e-04,
   E.approx = FALSE,
   verbose = FALSE,
   plot = FALSE
@@ -40,7 +40,7 @@ test specificity for individual testing, if applicable.}
 
 \item{B.INIT}{Array of values to be used to initialize the EM-algorithm at each of the tuning paramter combinations specified in \code{lambda.seq} and \code{theta.seq}.}
 
-\item{delta}{Convergence criterion.}
+\item{tol}{Convergence criterion.}
 
 \item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 

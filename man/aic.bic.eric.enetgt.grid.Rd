@@ -43,12 +43,12 @@ assay.data <- individual.assay.gen(Y.true,Se,Sp,cj=1)
 Z <- assay.data$Z
 Y <- assay.data$Y
 # compute the mle on the individual testing data:
-mlegt.out <- mlegt(X,Y,Z,Se,Sp,delta=.01)
+mlegt.out <- mlegt(X,Y,Z,Se,Sp,tol=.01)
 b.mle <- mlegt.out$b.mle
 # compute adaptive elastic net estimator over a grid of tuning parameter values
 n.lambda <- 8
 n.theta <- 2
-enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]),delta=.01)
+enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]),tol=.01)
 # make choices of the tuning parameters according to the aic, bic, and eric criteria
 aic.bic.eric.enetgt.grid.out <- aic.bic.eric.enetgt.grid(enetgt.grid.out,Z,X,Se,Sp,"individual")
 b.aenet.aic <- aic.bic.eric.enetgt.grid.out$b.enet.aic

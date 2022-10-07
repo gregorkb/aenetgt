@@ -4,16 +4,14 @@
 \alias{EYexact}
 \title{Computes conditional expectations of individual disease statuses for individual, master pool, or Dorfman testing}
 \usage{
-EYexact(Z, Y, X, b, Se, Sp)
+EYexact(Z, Y, eta, Se, Sp)
 }
 \arguments{
 \item{Z}{Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}.}
 
 \item{Y}{Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}.}
 
-\item{X}{Design matrix with first column a column of 1s.}
-
-\item{b}{Parameter values at which to compute the conditional expectations.}
+\item{eta}{the value of the linear predictor}
 
 \item{Se}{A vector of testing sensitivities of length \code{max(Z[,3])}.}
 
@@ -41,6 +39,6 @@ assay.data <- dorfman.assay.gen(Y.true,Se,Sp,cj)
 Z <- assay.data$Z
 Y <- assay.data$Y
 b <- data$b
-  
-EY <- EYexact(Z,Y,X,b,Se,Sp)
+eta <- X \%*\% b
+EY <- EYexact(Z,Y,eta,Se,Sp)
 }

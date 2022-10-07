@@ -10,8 +10,8 @@ mlegt(
   Z,
   Se,
   Sp,
-  binit = 1,
-  delta = 1e-04,
+  binit = NULL,
+  tol = 1e-04,
   E.approx = FALSE,
   get.SEs = FALSE
 )
@@ -33,7 +33,7 @@ test specificity for individual testing, if applicable.}
 
 \item{binit}{Parameter value at which to initialize the EM-algorithm. The default is \code{b=1}, for which an initial value is chosen internally.}
 
-\item{delta}{Convergence criterion.}
+\item{tol}{Convergence criterion.}
 
 \item{E.approx}{Logical.  If \code{TRUE} then E-step done with \code{EYapprox()}. If \code{FALSE}, then E-step done with \code{EYexact()}.}
 
@@ -60,5 +60,5 @@ cj <- 4 # set size of master pools
 assay.data <- dorfman.assay.gen(Y.true,Se,Sp,cj)
 Z <- assay.data$Z
 Y <- assay.data$Y
-mlegt.out <- mlegt(X, Y, Z, Se, Sp, delta = .01) # compute mle
+mlegt.out <- mlegt(X, Y, Z, Se, Sp, tol = .01) # compute mle
 }

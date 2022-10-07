@@ -50,14 +50,14 @@ Z <- pt.data$Z
 Y <- pt.data$Y
 
 # compute the mle on the group testing data:
-mlegt.out <- mlegt(X,Y,Z,Se,Sp,delta=.01)
+mlegt.out <- mlegt(X,Y,Z,Se,Sp)
 b.mle <- mlegt.out$b.mle
 b.mle
 
 # compute adaptive elastic net estimator over a grid of tuning parameter values
 n.lambda <- 8
 n.theta <- 2
-enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]),delta=.01)
+enetgt.grid.out <- enetgt.grid(X,Y,Z,Se,Sp,n.lambda,n.theta,weights = 1/abs(b.mle[-1]))
 
 # make choices of the tuning parameters according to the aic, bic, and eric criteria
 aic.bic.eric.enetgt.grid.out <- aic.bic.eric.enetgt.grid(enetgt.grid.out,Z,X,Se,Sp,"dorfman")
@@ -72,7 +72,7 @@ b.aenet.eric
 cv.fold.data <- get.individual.cv.fold.data(X,Y,Z,K=3)
 cv.enetgt.grid.out <- cv.enetgt.grid(cv.fold.data,"individual",Se,Sp,enetgt.grid.out$lambda.seq,
 						enetgt.grid.out$theta.seq,weights=1/abs(b.mle[-1]),
-						B.INIT=enetgt.grid.out$B.ENET,delta=.01)
+						B.INIT=enetgt.grid.out$B.ENET)
 b.aenet.cv <- enetgt.grid.out$B.ENET[cv.enetgt.grid.out$cv.ind[1],,cv.enetgt.grid.out$cv.ind[2]]
 b.aenet.cv
 }

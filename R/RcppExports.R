@@ -20,22 +20,22 @@ CovYiYjgibbs <- function(N, p, Y, Z, W, se, sp, EY, na, GI) {
 #' @param lambda The tuning parameter governing the strength of the elastic net penalty
 #' @param gammar A vector of length \code{ncol(X) - 1} giving the weights applied to each covariate in the elastic net penalization
 #' @param theta Value controlling the relative strength of the ridge and lasso penalties; 1 gives lasso.
-#' @param delta Convergence tolerance
+#' @param tol Convergence tolerance
 #' @return a list with the estimated coefficients, etc.
 #' 
-#' @example
+#' @examples
 #' # generate some data
 #' n <- 5000
 #' p <- 40
 #' b <- c(0,3,0,1,-2,0,rep(0,p-5)) # first is intercept
-#' X <- cbind(rep(1,n),scale(matrix(rnorm(n*p),nrow=n),T,T))
+#' X <- cbind(rep(1,n),scale(matrix(rnorm(n*p),nrow=n),TRUE,TRUE))
 #' eta <- X %*% b
 #' Y <- rbinom(n,1,1/(1 + exp(-eta)))
 #' 
 #' # compute elastic net estimator  
-#' logistic_enet(Y, X, lambda = 30, gammar = rep(1,p), theta = 0.5, delta = 0.0001)$b
-logistic_enet <- function(Yr, Xr, lambda, gammar, theta, delta) {
-    .Call(`_aenetgt_logistic_enet`, Yr, Xr, lambda, gammar, theta, delta)
+#' logistic_enet(Y, X, lambda = 30, gammar = rep(1,p), theta = 0.5, tol = 0.0001)$b
+logistic_enet <- function(Yr, Xr, lambda, gammar, theta, tol) {
+    .Call(`_aenetgt_logistic_enet`, Yr, Xr, lambda, gammar, theta, tol)
 }
 
 llj_array <- function(Zjr, Zjc, Yji, whichjretest, pxji, Se, Sp, B) {
@@ -53,8 +53,7 @@ all_binary_sequences <- function(a) {
 #'   
 #' @param Z Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}.
 #' @param Y Group testing output from one of the functions \code{individual.assay.gen}, \code{masterpool.assay.gen}, \code{dorfman.assay.gen}.
-#' @param X Design matrix with first column a column of 1s.
-#' @param b Parameter values at which to compute the conditional expectations.
+#' @param eta the value of the linear predictor
 #' @param Se A vector of testing sensitivities of length \code{max(Z[,3])}.
 #' @param Sp A vector of testing specificities of length \code{max(Z[,3])}.
 #' @return The vector of conditional expectations.
@@ -75,9 +74,9 @@ all_binary_sequences <- function(a) {
 #' Z <- assay.data$Z
 #' Y <- assay.data$Y
 #' b <- data$b
-#'   
-#' EY <- EYexact(Z,Y,X,b,Se,Sp)
-EYexact <- function(Z, Y, X, b, Se, Sp) {
-    .Call(`_aenetgt_EYexact`, Z, Y, X, b, Se, Sp)
+#' eta <- X %*% b
+#' EY <- EYexact(Z,Y,eta,Se,Sp)
+EYexact <- function(Z, Y, eta, Se, Sp) {
+    .Call(`_aenetgt_EYexact`, Z, Y, eta, Se, Sp)
 }
 
